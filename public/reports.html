@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - POS System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-weight: 600; color: var(--primary);">Menu</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="superadmin-dashboard.html">🏠 Dashboard</a></li>
+            <li><a href="superadmin-dashboard.html#invoices">🧾 Invoices</a></li>
+            <li><a href="company-settings.html">⚙️ Company Settings</a></li>
+            <li><a href="user-management.html">👥 User Management</a></li>
+            <li><a href="reports.html" class="active">📊 Reports</a></li>
+        </ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="mobile-header">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+            <span style="font-weight: 600; color: var(--dark);">Reports</span>
+        </div>
+        
+        <div class="company-header">
+            <div class="company-brand">
+                <div class="company-logo"><div class="company-logo-placeholder">🏪</div></div>
+                <div class="company-details"><div class="company-name">POS System</div></div>
+            </div>
+            <div class="user-info">
+                <span class="user-badge" id="userName"></span>
+                <span class="role-badge">SUPERADMIN</span>
+                <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="container">
+        <div id="alert"></div>
+        
+        <div class="grid grid-3">
+            <div class="stat-card">
+                <div class="icon">💰</div>
+                <h3>Today's Revenue</h3>
+                <div class="value" id="todayRevenue">$0</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📊</div>
+                <h3>This Month</h3>
+                <div class="value" id="monthRevenue">$0</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📈</div>
+                <h3>Total Revenue</h3>
+                <div class="value" id="totalRevenue">$0</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Sales Report</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Invoices</th>
+                            <th>Revenue</th>
+                            <th>Tax Collected</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTable">
+                        <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Top Selling Products</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Units Sold</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topProductsTable">
+                        <tr><td colspan="3" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        checkAuth(CONFIG.ROLES.SUPERADMIN);
+        
+        const user = getUser();
+        document.getElementById('userName').textContent = user?.username || 'Super Admin';
+
+        async function loadReports() {
+            try {
+                const [invoices, products] = await Promise.all([
+                    api.getInvoices(),
+                    api.getProducts()
+                ]);
+
+                const today = new Date().toDateString();
+                const thisMonth = new Date().getMonth();
+                const thisYear = new Date().getFullYear();
+
+                const todayInvoices = invoices.data.filter(inv => 
+                    new Date(inv.createdAt).toDateString() === today
+                );
+                const monthInvoices = invoices.data.filter(inv => {
+                    const date = new Date(inv.createdAt);
+                    return date.getMonth() === thisMonth && date.getFullYear() === thisYear;
+                });
+
+                const todayRevenue = todayInvoices.reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0);
+                const monthRevenue = monthInvoices.reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0);
+                const totalRevenue = invoices.data.reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0);
+
+                document.getElementById('todayRevenue').textContent = utils.formatCurrency(todayRevenue);
+                document.getElementById('monthRevenue').textContent = utils.formatCurrency(monthRevenue);
+                document.getElementById('totalRevenue').textContent = utils.formatCurrency(totalRevenue);
+
+                // Group by date
+                const salesByDate = {};
+                invoices.data.forEach(inv => {
+                    const date = new Date(inv.createdAt).toLocaleDateString();
+                    if (!salesByDate[date]) {
+                        salesByDate[date] = { count: 0, revenue: 0, tax: 0 };
+                    }
+                    salesByDate[date].count++;
+                    salesByDate[date].revenue += parseFloat(inv.total || 0);
+                    salesByDate[date].tax += parseFloat(inv.tax || 0);
+                });
+
+                const salesTable = document.getElementById('salesTable');
+                const salesEntries = Object.entries(salesByDate).slice(0, 10);
+                if (salesEntries.length === 0) {
+                    salesTable.innerHTML = '<tr><td colspan="4" class="text-center">No sales data</td></tr>';
+                } else {
+                    salesTable.innerHTML = salesEntries.map(([date, data]) => `
+                        <tr>
+                            <td>${date}</td>
+                            <td>${data.count}</td>
+                            <td>${utils.formatCurrency(data.revenue)}</td>
+                            <td>${utils.formatCurrency(data.tax)}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Top products (mock data - would need invoice items)
+                const topProductsTable = document.getElementById('topProductsTable');
+                topProductsTable.innerHTML = '<tr><td colspan="3" class="text-center">Product sales tracking coming soon</td></tr>';
+
+            } catch (error) {
+                utils.showAlert('Error loading reports: ' + error.message, 'error');
+            }
+        }
+
+        loadReports();
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+    </script>
+</body>
+</html>

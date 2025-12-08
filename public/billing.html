@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing - POS System</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/billing.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-weight: 600; color: var(--primary);">Menu</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html">🏠 Dashboard</a></li>
+            <li><a href="products.html">📦 Products</a></li>
+            <li><a href="categories.html">📁 Categories</a></li>
+            <li><a href="billing.html" class="active">🛒 Billing</a></li>
+            <li><a href="invoices.html">🧾 Invoices</a></li>
+        </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+            <span style="font-weight: 600; color: var(--dark);">Billing</span>
+        </div>
+        
+        <div class="company-header">
+        <div class="company-brand">
+            <div class="company-logo" id="companyLogo">
+                <div class="company-logo-placeholder">🏪</div>
+            </div>
+            <div class="company-details">
+                <div class="company-name" id="companyName">POS System</div>
+                <div class="company-info">
+                    <span class="company-info-item" id="companyAddress"></span>
+                    <span class="company-info-item" id="companyContact"></span>
+                    <span class="company-info-item" id="companyEmail"></span>
+                </div>
+            </div>
+        </div>
+        <div class="user-info">
+            <span class="user-badge" id="userName"></span>
+            <span class="role-badge">CASHIER</span>
+            <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+        </div>
+        </div>
+
+        <div class="container">
+        
+        <div class="billing-grid">
+            <!-- Left: Products -->
+            <div>
+                <div class="card" style="height: 100%;">
+                    <div class="card-header">Products</div>
+                    
+                    <!-- Barcode Scanner -->
+                    <input type="text" class="form-control" placeholder="📷 Scan Barcode or Search..." id="barcodeInput" style="margin-bottom: 10px; font-weight: 600; border: 2px solid #4f46e5;">
+                    
+                    <!-- Search -->
+                    <input type="text" class="form-control" placeholder="🔍 Search products..." id="searchProduct" style="margin-bottom: 15px;">
+                    
+                    <!-- Category Filters -->
+                    <div class="filter-pills" id="categoryFilters"></div>
+                    
+                    <!-- Products List -->
+                    <div class="products-list-container" id="productsList"></div>
+                </div>
+            </div>
+
+            <!-- Right: Cart -->
+            <div class="cart-container">
+                <div class="cart-header">🛒 Cart</div>
+                
+                <!-- Mini Analytics -->
+                <div class="mini-analytics">
+                    <div class="mini-stat">
+                        <div class="mini-stat-value" id="todaySales">$0</div>
+                        <div class="mini-stat-label">Today Sales</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-value" id="invoiceCount">0</div>
+                        <div class="mini-stat-label">Invoices</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-value" id="itemsSold">0</div>
+                        <div class="mini-stat-label">Items Sold</div>
+                    </div>
+                </div>
+
+                <!-- Cart Items -->
+                <div class="cart-items-container" id="cartItems">
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <p>Cart is empty</p>
+                    </div>
+                </div>
+
+                <!-- Cart Summary -->
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Discount:</span>
+                        <input type="number" id="discount" value="0" min="0" step="0.01" class="discount-input">
+                    </div>
+                    <div class="summary-row">
+                        <span id="taxLabel">Tax (0%):</span>
+                        <span id="tax">$0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>TOTAL:</span>
+                        <span id="total">$0.00</span>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <select class="payment-select" id="paymentMethod" onchange="toggleCashFields()">
+                        <option value="cash">💵 Cash</option>
+                        <option value="card">💳 Card</option>
+                        <option value="online">🌐 Online</option>
+                    </select>
+
+                    <!-- Cash Payment Fields -->
+                    <div id="cashFields" style="margin-top: 12px;">
+                        <div class="summary-row">
+                            <span>Cash Received:</span>
+                            <input type="number" id="cashReceived" value="0" min="0" step="0.01" class="discount-input" oninput="calculateChange()">
+                        </div>
+                        <div class="summary-row" style="color: #10b981; font-weight: 600;">
+                            <span>Change:</span>
+                            <span id="changeAmount">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn-checkout" onclick="checkout()">💰 Checkout</button>
+                        <button class="btn-clear" onclick="clearCart()">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/receipt.js"></script>
+    <script>
+        checkAuth(CONFIG.ROLES.ADMIN);
+        
+        const user = getUser();
+        document.getElementById('userName').textContent = user?.username || 'Cashier';
+        
+        async function loadCompanyInfo() {
+            try {
+                const response = await api.getCompanySettings();
+                const company = response.data;
+                
+                document.getElementById('companyName').textContent = company.companyName || 'POS System';
+                
+                if (company.logo) {
+                    document.getElementById('companyLogo').innerHTML = `<img src="http://localhost:5000/${company.logo}" alt="Logo">`;
+                }
+                
+                if (company.address) {
+                    document.getElementById('companyAddress').innerHTML = `📍 ${utils.sanitize(company.address)}`;
+                }
+                
+                if (company.contact) {
+                    document.getElementById('companyContact').innerHTML = `📞 ${utils.sanitize(company.contact)}`;
+                }
+                
+                if (company.email) {
+                    document.getElementById('companyEmail').innerHTML = `✉️ ${utils.sanitize(company.email)}`;
+                }
+            } catch (error) {
+                console.log('Using default company info');
+            }
+        }
+        
+        loadCompanyInfo();
+
+        let products = [];
+        let cart = [];
+        let categories = [];
+        let selectedCategory = 'all';
+        let TAX_RATE = 0;
+
+        async function loadProducts() {
+            try {
+                const [productsRes, categoriesRes, companyRes] = await Promise.all([
+                    api.getProducts(),
+                    api.getCategories(),
+                    api.getCompanySettings()
+                ]);
+                
+                products = productsRes.data;
+                categories = categoriesRes.data;
+                TAX_RATE = parseFloat(companyRes.data.taxRate || 0) / 100;
+                document.getElementById('taxLabel').textContent = `Tax (${companyRes.data.taxRate || 0}%):`;
+                
+                renderCategoryFilters();
+                displayProducts(products);
+                loadMiniAnalytics();
+            } catch (error) {
+                utils.showAlert('Error loading products: ' + error.message, 'error');
+            }
+        }
+
+        function renderCategoryFilters() {
+            const container = document.getElementById('categoryFilters');
+            container.innerHTML = `
+                <div class="filter-pill ${selectedCategory === 'all' ? 'active' : ''}" onclick="filterByCategory('all')">
+                    📦 All
+                </div>
+                ${categories.map(c => `
+                    <div class="filter-pill ${selectedCategory === c.id ? 'active' : ''}" onclick="filterByCategory(${c.id})">
+                        ${utils.sanitize(c.name)}
+                    </div>
+                `).join('')}
+                <div class="filter-pill ${selectedCategory === 'lowstock' ? 'active' : ''}" onclick="filterByCategory('lowstock')">
+                    ⚠️ Low Stock
+                </div>
+            `;
+        }
+
+        function filterByCategory(category) {
+            selectedCategory = category;
+            renderCategoryFilters();
+            
+            let filtered = products;
+            if (category === 'lowstock') {
+                filtered = products.filter(p => p.stock < 20);
+            } else if (category !== 'all') {
+                filtered = products.filter(p => p.categoryId === category);
+            }
+            
+            displayProducts(filtered);
+        }
+
+        function displayProducts(items) {
+            const container = document.getElementById('productsList');
+            
+            if (items.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:40px;">No products found</p>';
+                return;
+            }
+            
+            container.innerHTML = items.map(p => {
+                const inCart = cart.find(c => c.productId === p.id);
+                return `
+                    <div class="product-card ${inCart ? 'selected' : ''}">
+                        ${p.image ? 
+                            `<img src="http://localhost:5000/${p.image}" alt="${utils.sanitize(p.name)}" onclick="addToCart(${p.id})">` : 
+                            '<div style="width:75px;height:75px;background:#e5e7eb;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:5px;" onclick="addToCart(' + p.id + ')">📦</div>'
+                        }
+                        <div class="product-info">
+                            <div class="product-name" title="${utils.sanitize(p.name)}">${utils.sanitize(p.name)}</div>
+                            <div class="product-meta">Stock: ${p.stock}</div>
+                            <div class="product-price">${utils.formatCurrency(p.price)}</div>
+                        </div>
+                        <button class="add-btn" ${p.stock === 0 ? 'disabled' : ''} onclick="addToCart(${p.id})">
+                            ${inCart ? `✓ ${inCart.quantity}` : '+ Add'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Barcode scanner input
+        document.getElementById('barcodeInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const barcode = e.target.value.trim();
+                if (barcode) {
+                    const product = products.find(p => p.barcode === barcode || p.sku === barcode);
+                    if (product) {
+                        addToCart(product.id);
+                        e.target.value = '';
+                        e.target.focus();
+                    } else {
+                        utils.showAlert('Product not found!', 'error');
+                        e.target.value = '';
+                    }
+                }
+            }
+        });
+
+        document.getElementById('searchProduct').addEventListener('input', utils.debounce((e) => {
+            const search = e.target.value.toLowerCase().trim();
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(search) || 
+                p.sku.toLowerCase().includes(search) ||
+                (p.barcode && p.barcode.toLowerCase().includes(search))
+            );
+            displayProducts(filtered);
+        }, 300));
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product || product.stock === 0) return;
+
+            const cartItem = cart.find(c => c.productId === productId);
+
+            if (cartItem) {
+                if (cartItem.quantity < product.stock) {
+                    cartItem.quantity++;
+                } else {
+                    utils.showAlert('Not enough stock!', 'warning');
+                    return;
+                }
+            } else {
+                cart.push({
+                    productId: product.id,
+                    name: product.name,
+                    price: parseFloat(product.price),
+                    quantity: 1,
+                    stock: product.stock
+                });
+            }
+            
+            updateCart();
+            displayProducts(products.filter(p => selectedCategory === 'all' || p.categoryId === selectedCategory));
+        }
+
+        function updateQuantity(productId, change) {
+            const item = cart.find(c => c.productId === productId);
+            if (!item) return;
+
+            const newQty = item.quantity + change;
+            if (newQty > 0 && newQty <= item.stock) {
+                item.quantity = newQty;
+                updateCart();
+            } else if (newQty <= 0) {
+                removeFromCart(productId);
+            } else {
+                utils.showAlert('Quantity exceeds stock', 'warning');
+            }
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(c => c.productId !== productId);
+            updateCart();
+            displayProducts(products.filter(p => selectedCategory === 'all' || p.categoryId === selectedCategory));
+        }
+
+        function updateCart() {
+            const container = document.getElementById('cartItems');
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <p>Cart is empty</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = cart.map(item => `
+                    <div class="cart-item-card">
+                        <div class="cart-item-header">
+                            <span class="cart-item-name">${utils.sanitize(item.name)}</span>
+                            <button class="cart-item-remove" onclick="removeFromCart(${item.productId})">✕</button>
+                        </div>
+                        <div class="cart-item-controls">
+                            <div class="qty-controls">
+                                <button class="qty-btn" onclick="updateQuantity(${item.productId}, -1)">−</button>
+                                <span class="qty-value">${item.quantity}</span>
+                                <button class="qty-btn" onclick="updateQuantity(${item.productId}, 1)">+</button>
+                            </div>
+                            <span class="cart-item-price">${utils.formatCurrency(item.price * item.quantity)}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            calculateTotal();
+        }
+
+        let currentTotal = 0;
+
+        function calculateTotal() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const taxableAmount = Math.max(0, subtotal - discount);
+            const tax = taxableAmount * TAX_RATE;
+            currentTotal = taxableAmount + tax;
+
+            document.getElementById('subtotal').textContent = utils.formatCurrency(subtotal);
+            document.getElementById('tax').textContent = utils.formatCurrency(tax);
+            document.getElementById('total').textContent = utils.formatCurrency(currentTotal);
+            
+            // Recalculate change if cash payment is selected
+            if (document.getElementById('paymentMethod').value === 'cash') {
+                calculateChange();
+            }
+        }
+
+        document.getElementById('discount').addEventListener('input', calculateTotal);
+
+        function toggleCashFields() {
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const cashFields = document.getElementById('cashFields');
+            
+            if (paymentMethod === 'cash') {
+                cashFields.style.display = 'block';
+                calculateChange();
+            } else {
+                cashFields.style.display = 'none';
+            }
+        }
+
+        function calculateChange() {
+            const cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
+            const change = cashReceived > currentTotal ? (cashReceived - currentTotal) : 0;
+            
+            console.log('Total:', currentTotal, 'Cash Received:', cashReceived, 'Change:', change);
+            
+            document.getElementById('changeAmount').textContent = utils.formatCurrency(change);
+            
+            // Visual feedback
+            const changeElement = document.getElementById('changeAmount');
+            if (cashReceived > 0 && cashReceived < total) {
+                changeElement.style.color = '#ef4444'; // Red - insufficient
+            } else if (change > 0) {
+                changeElement.style.color = '#10b981'; // Green - change to return
+            } else {
+                changeElement.style.color = '#6b7280'; // Gray - exact or zero
+            }
+        }
+
+        function clearCart() {
+            if (cart.length === 0) return;
+            utils.confirm('Clear cart?', () => {
+                cart = [];
+                updateCart();
+                displayProducts(products);
+            });
+        }
+
+        async function checkout() {
+            if (cart.length === 0) {
+                utils.showToast('Cart is empty!', 'warning');
+                return;
+            }
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const taxableAmount = Math.max(0, subtotal - discount);
+            const tax = taxableAmount * TAX_RATE;
+            const total = taxableAmount + tax;
+
+            // Validate cash payment
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            if (paymentMethod === 'cash') {
+                const cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
+                if (cashReceived < total) {
+                    utils.showAlert('Insufficient cash! Need ' + utils.formatCurrency(total - cashReceived) + ' more.', 'error');
+                    return;
+                }
+            }
+
+            const invoice = {
+                customerId: null,
+                items: cart.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    discount: 0,
+                    tax: (item.price * item.quantity * TAX_RATE)
+                })),
+                discount: discount,
+                paymentMethod: document.getElementById('paymentMethod').value
+            };
+
+            try {
+                const result = await api.createInvoice(invoice);
+                utils.showToast('Invoice created successfully!', 'success');
+                
+                await printReceipt(result.data, cart, subtotal, discount, tax, total, user);
+                
+                // Reset form
+                cart = [];
+                document.getElementById('cashReceived').value = '0';
+                document.getElementById('changeAmount').textContent = '$0.00';
+                updateCart();
+                loadProducts();
+                loadMiniAnalytics();
+            } catch (error) {
+                utils.showToast(error.message, 'error');
+            }
+        }
+
+        async function loadMiniAnalytics() {
+            try {
+                const invoices = await api.getInvoices();
+                const today = new Date().toDateString();
+                const todayInvoices = invoices.data.filter(inv => 
+                    new Date(inv.createdAt).toDateString() === today
+                );
+
+                const todaySales = todayInvoices.reduce((sum, inv) => sum + parseFloat(inv.total), 0);
+                const itemsSold = todayInvoices.reduce((sum, inv) => sum + (inv.items?.length || 0), 0);
+
+                document.getElementById('todaySales').textContent = utils.formatCurrency(todaySales);
+                document.getElementById('invoiceCount').textContent = todayInvoices.length;
+                document.getElementById('itemsSold').textContent = itemsSold;
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        loadProducts();
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+    </script>
+</body>
+</html>

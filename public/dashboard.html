@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - POS System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-weight: 600; color: var(--primary);">Menu</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html" class="active">🏠 Dashboard</a></li>
+            <li><a href="products.html">📦 Products</a></li>
+            <li><a href="categories.html">📁 Categories</a></li>
+            <li><a href="billing.html">🛒 Billing</a></li>
+            <li><a href="invoices.html">🧾 Invoices</a></li>
+        </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+            <span style="font-weight: 600; color: var(--dark);">Dashboard</span>
+        </div>
+        
+        <div class="company-header">
+        <div class="company-brand">
+            <div class="company-logo" id="companyLogo">
+                <div class="company-logo-placeholder">🏪</div>
+            </div>
+            <div class="company-details">
+                <div class="company-name" id="companyName">POS System</div>
+                <div class="company-info">
+                    <span class="company-info-item" id="companyAddress"></span>
+                    <span class="company-info-item" id="companyContact"></span>
+                    <span class="company-info-item" id="companyEmail"></span>
+                </div>
+            </div>
+        </div>
+        <div class="user-info">
+            <span class="user-badge" id="userName"></span>
+            <span class="role-badge">ADMIN</span>
+            <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+        </div>
+        </div>
+
+        <div class="container">
+        <!-- KPI Cards -->
+        <div class="grid grid-4">
+            <div class="stat-card stat-card-blue">
+                <div class="stat-icon">📦</div>
+                <div class="stat-content">
+                    <h3>Total Products</h3>
+                    <div class="value" id="totalProducts">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-card-yellow">
+                <div class="stat-icon">📂</div>
+                <div class="stat-content">
+                    <h3>Categories</h3>
+                    <div class="value" id="totalCategories">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-card-purple">
+                <div class="stat-icon">📄</div>
+                <div class="stat-content">
+                    <h3>Total Invoices</h3>
+                    <div class="value" id="totalInvoices">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-card-red">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-content">
+                    <h3>Low Stock Alert</h3>
+                    <div class="value" id="lowStock">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card quick-actions-card">
+            <div class="card-header">⚡ Quick Actions</div>
+            <div class="quick-actions">
+                <a href="products.html" class="quick-btn quick-btn-blue">
+                    <span class="quick-icon">➕</span>
+                    <span>Add Product</span>
+                </a>
+                <a href="categories.html" class="quick-btn quick-btn-yellow">
+                    <span class="quick-icon">📁</span>
+                    <span>Add Category</span>
+                </a>
+                <a href="billing.html" class="quick-btn quick-btn-green">
+                    <span class="quick-icon">🛒</span>
+                    <span>New Sale</span>
+                </a>
+                <a href="invoices.html" class="quick-btn quick-btn-purple">
+                    <span class="quick-icon">📊</span>
+                    <span>View Reports</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-2">
+            <div class="card">
+                <div class="card-header">📈 Sales Overview (Last 7 Days)</div>
+                <canvas id="salesChart" style="max-height: 250px;"></canvas>
+            </div>
+            <div class="card">
+                <div class="card-header">🏆 Top Selling Products</div>
+                <div id="topProducts" style="min-height: 250px;"></div>
+            </div>
+        </div>
+
+        <!-- Recent Products Table -->
+        <div class="card">
+            <div class="card-header">📦 Recent Products</div>
+            <div class="table-container">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>SKU</th>
+                            <th>Price</th>
+                            <th>Stock Status</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTable">
+                        <tr><td colspan="6" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        checkAuth(CONFIG.ROLES.ADMIN);
+
+        const user = getUser();
+        document.getElementById('userName').textContent = user?.username || 'Admin';
+        
+        async function loadCompanyInfo() {
+            try {
+                const response = await api.getCompanySettings();
+                const company = response.data;
+                
+                document.getElementById('companyName').textContent = company.companyName || 'POS System';
+                
+                if (company.logo) {
+                    document.getElementById('companyLogo').innerHTML = `<img src="http://localhost:5000/${company.logo}" alt="Logo">`;
+                }
+                
+                if (company.address) {
+                    document.getElementById('companyAddress').innerHTML = `📍 ${utils.sanitize(company.address)}`;
+                }
+                
+                if (company.contact) {
+                    document.getElementById('companyContact').innerHTML = `📞 ${utils.sanitize(company.contact)}`;
+                }
+                
+                if (company.email) {
+                    document.getElementById('companyEmail').innerHTML = `✉️ ${utils.sanitize(company.email)}`;
+                }
+            } catch (error) {
+                console.log('Using default company info');
+            }
+        }
+        
+        loadCompanyInfo();
+
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            if (end === 0) {
+                obj.textContent = 0;
+                return;
+            }
+            const range = end - start;
+            const increment = end > start ? 1 : -1;
+            const stepTime = Math.abs(Math.floor(duration / range));
+            let current = start;
+            const timer = setInterval(() => {
+                current += increment;
+                obj.textContent = current;
+                if (current === end) clearInterval(timer);
+            }, stepTime);
+        }
+
+        async function loadDashboard() {
+            try {
+                const [products, categories, invoices] = await Promise.all([
+                    api.getProducts(),
+                    api.getCategories(),
+                    api.getInvoices()
+                ]);
+
+                // Animate KPI numbers
+                animateValue('totalProducts', 0, products.data.length, 1000);
+                animateValue('totalCategories', 0, categories.data.length, 1000);
+              animateValue('totalInvoices', 0, invoices.data.length, 1000);
+
+                const lowStock = products.data.filter(p => p.stock < 20).length;
+                animateValue('lowStock', 0, lowStock, 1000);
+
+                // Render products table
+                const tbody = document.getElementById('productsTable');
+                if (products.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center">No products found</td></tr>';
+                } else {
+                    tbody.innerHTML = products.data.slice(0, 8).map(p => {
+                        let stockStatus = '';
+                        let stockClass = '';
+                        if (p.stock === 0) {
+                            stockStatus = 'Out of Stock';
+                            stockClass = 'stock-critical';
+                        } else if (p.stock < 10) {
+                            stockStatus = `Critical (${p.stock})`;
+                            stockClass = 'stock-critical';
+                        } else if (p.stock < 20) {
+                            stockStatus = `Low (${p.stock})`;
+                            stockClass = 'stock-low';
+                        } else {
+                            stockStatus = `In Stock (${p.stock})`;
+                            stockClass = 'stock-good';
+                        }
+                        return `
+                        <tr>
+                            <td>
+                                ${p.image ? 
+                                    `<img src="http://localhost:5000/${p.image}" style="width:45px;height:45px;object-fit:cover;border-radius:8px;" alt="${utils.sanitize(p.name)}">` : 
+                                    '<div style="width:45px;height:45px;background:#e5e7eb;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;">📦</div>'
+                                }
+                            </td>
+                            <td><strong>${utils.sanitize(p.name)}</strong></td>
+                            <td><span class="sku-badge">${utils.sanitize(p.sku)}</span></td>
+                            <td><strong>${utils.formatCurrency(p.price)}</strong></td>
+                            <td><span class="stock-badge ${stockClass}">${stockStatus}</span></td>
+                            <td>${p.category?.name ? utils.sanitize(p.category.name) : p.Category?.name ? utils.sanitize(p.Category.name) : 'N/A'}</td>
+                        </tr>
+                    `}).join('');
+                }
+
+                // Render sales chart
+                renderSalesChart(invoices.data);
+
+                // Render top products
+                renderTopProducts(products.data, invoices.data);
+            } catch (error) {
+                utils.showToast('Error loading dashboard: ' + error.message, 'error');
+            }
+        }
+
+        function renderSalesChart(invoices) {
+            const last7Days = [];
+            const salesData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                last7Days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                
+                const daySales = invoices.filter(inv => {
+                    const invDate = new Date(inv.createdAt).toISOString().split('T')[0];
+                    return invDate === dateStr;
+                }).reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0);
+                
+                salesData.push(daySales);
+            } 
+
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Sales ($)',
+                        data: salesData,
+                        backgroundColor: 'rgba(79, 70, 229, 0.8)',
+                        borderColor: 'rgba(79, 70, 229, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTopProducts(products, invoices) {
+            const productSales = {};
+            
+            invoices.forEach(inv => {
+                const items = inv.InvoiceItems || inv.items || [];
+                items.forEach(item => {
+                    const pid = item.productId;
+                    productSales[pid] = (productSales[pid] || 0) + item.quantity;
+                });
+            });
+
+            const topProducts = products
+                .map(p => ({ ...p, sold: productSales[p.id] || 0 }))
+                .sort((a, b) => b.sold - a.sold)
+                .slice(0, 4);
+
+            const container = document.getElementById('topProducts');
+            if (topProducts.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:#9ca3af;padding:40px;">No products available</p>';
+            } else {
+                container.innerHTML = topProducts.map((p, i) => `
+                    <div class="top-product-item">
+                        <div class="rank">#${i + 1}</div>
+                        <div class="product-info">
+                            <strong>${utils.sanitize(p.name)}</strong>
+                            <small>Qty: ${p.sold}</small>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        loadDashboard();
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoices - POS System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-weight: 600; color: var(--primary);">Menu</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html">🏠 Dashboard</a></li>
+            <li><a href="products.html">📦 Products</a></li>
+            <li><a href="categories.html">📁 Categories</a></li>
+            <li><a href="billing.html">🛒 Billing</a></li>
+            <li><a href="invoices.html" class="active">🧾 Invoices</a></li>
+        </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+            <span style="font-weight: 600; color: var(--dark);">Invoices</span>
+        </div>
+        
+        <div class="company-header">
+        <div class="company-brand">
+            <div class="company-logo" id="companyLogo">
+                <div class="company-logo-placeholder">🏪</div>
+            </div>
+            <div class="company-details">
+                <div class="company-name" id="companyName">POS System</div>
+                <div class="company-info">
+                    <span class="company-info-item" id="companyAddress"></span>
+                    <span class="company-info-item" id="companyContact"></span>
+                    <span class="company-info-item" id="companyEmail"></span>
+                </div>
+            </div>
+        </div>
+        <div class="user-info">
+            <span class="user-badge" id="userName"></span>
+            <span class="role-badge">ADMIN</span>
+            <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+        </div>
+        </div>
+
+        <div class="container">
+        <!-- Header Section -->
+        <div class="page-header">
+            <!-- <div>
+                <h2 style="font-size: 28px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">🧾 Invoices</h2>
+                <p style="color: #6b7280; font-size: 14px;">View and manage all sales invoices</p>
+            </div> -->
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-4" style="margin-bottom: 32px;">
+            <div class="stat-card stat-card-blue">
+                <div class="stat-icon">📄</div>
+                <div class="stat-content">
+                    <h3>Total Invoices</h3>
+                    <div class="value" id="totalInvoices">0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-card-green">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <h3>Total Revenue</h3>
+                    <div class="value" id="totalRevenue">$0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-card-purple">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <h3>Today's Sales</h3>
+                    <div class="value" id="todaySales">$0</div>
+                </div>
+            </div>
+            <div class="stat-card stat-card-yellow">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <h3>Avg Invoice</h3>
+                    <div class="value" id="avgInvoice">$0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters & Search -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+                <input type="text" id="searchInvoice" class="form-control" placeholder="🔍 Search by invoice number..." style="flex: 1; min-width: 250px;">
+                <select id="filterPayment" class="form-control" style="width: 180px;">
+                    <option value="all">All Payments</option>
+                    <option value="cash">💵 Cash</option>
+                    <option value="card">💳 Card</option>
+                    <option value="online">🌐 Online</option>
+                </select>
+                <select id="filterStatus" class="form-control" style="width: 150px;">
+                    <option value="all">All Status</option>
+                    <option value="paid">✅ Paid</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="cancelled">❌ Cancelled</option>
+                </select>
+                <select id="filterDate" class="form-control" style="width: 150px;">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Invoices Table -->
+        <div class="card">
+            <div class="card-header">📋 Invoice History</div>
+            <div class="table-container">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"></th>
+                            <th>Invoice #</th>
+                            <th>Date & Time</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Subtotal</th>
+                            <th>Discount</th>
+                            <th>Tax</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoicesTable">
+                        <tr><td colspan="10" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .stat-card-green::before { background: #10b981; }
+        .stat-card-green:hover { border-color: #10b981; }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .modern-table thead th {
+            background: #1f2937;
+            color: white;
+            padding: 10px 8px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: none;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modern-table thead th:first-child {
+            border-radius: 12px 0 0 0;
+        }
+
+        .modern-table thead th:last-child {
+            border-radius: 0 12px 0 0;
+        }
+
+        .modern-table tbody tr {
+            transition: background 0.2s;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .modern-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .modern-table tbody td {
+            padding: 10px 8px;
+            font-size: 12px;
+            color: #374151;
+        }
+
+        .invoice-number {
+            font-weight: 600;
+            color: #4f46e5;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+        }
+
+        .payment-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .payment-cash {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .payment-card {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .payment-online {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .status-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .items-count {
+            background: #f3f4f6;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .items-count:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .expand-btn {
+            background: #f3f4f6;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .expand-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .expand-btn.expanded {
+            background: #667eea;
+            color: white;
+        }
+
+        .invoice-row {
+            cursor: pointer;
+        }
+
+        .details-row {
+            display: none;
+            background: #f9fafb;
+        }
+
+        .details-row.show {
+            display: table-row;
+        }
+
+        .details-content {
+            padding: 24px;
+            background: white;
+            border-radius: 12px;
+            margin: 12px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .items-header {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .items-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .item-card {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+            transition: all 0.2s;
+        }
+
+        .item-card:hover {
+            background: #f3f4f6;
+            transform: translateX(4px);
+        }
+
+        .item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 15px;
+        }
+
+        .item-meta {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .item-price {
+            text-align: right;
+        }
+
+        .item-total {
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+        }
+
+        .item-unit-price {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+        }
+    </style>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        checkAuth(CONFIG.ROLES.ADMIN);
+        
+        const user = getUser();
+        document.getElementById('userName').textContent = user?.username || 'Admin';
+        
+        async function loadCompanyInfo() {
+            try {
+                const response = await api.getCompanySettings();
+                const company = response.data;
+                
+                document.getElementById('companyName').textContent = company.companyName || 'POS System';
+                
+                if (company.logo) {
+                    document.getElementById('companyLogo').innerHTML = `<img src="http://localhost:5000/${company.logo}" alt="Logo">`;
+                }
+                
+                if (company.address) {
+                    document.getElementById('companyAddress').innerHTML = `📍 ${utils.sanitize(company.address)}`;
+                }
+                
+                if (company.contact) {
+                    document.getElementById('companyContact').innerHTML = `📞 ${utils.sanitize(company.contact)}`;
+                }
+                
+                if (company.email) {
+                    document.getElementById('companyEmail').innerHTML = `✉️ ${utils.sanitize(company.email)}`;
+                }
+            } catch (error) {
+                console.log('Using default company info');
+            }
+        }
+        
+        loadCompanyInfo();
+
+        let allInvoices = [];
+
+        async function loadInvoices() {
+            try {
+                const response = await api.getInvoices();
+                allInvoices = response.data;
+                
+                updateStats(allInvoices);
+                displayInvoices(allInvoices);
+            } catch (error) {
+                utils.showToast('Error loading invoices: ' + error.message, 'error');
+            }
+        }
+
+        function updateStats(invoices) {
+            const total = invoices.reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0);
+            const today = new Date().toDateString();
+            const todayInvoices = invoices.filter(inv => new Date(inv.createdAt).toDateString() === today);
+            const todayTotal = todayInvoices.reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0);
+            const avg = invoices.length > 0 ? total / invoices.length : 0;
+
+            document.getElementById('totalInvoices').textContent = invoices.length;
+            document.getElementById('totalRevenue').textContent = utils.formatCurrency(total);
+            document.getElementById('todaySales').textContent = utils.formatCurrency(todayTotal);
+            document.getElementById('avgInvoice').textContent = utils.formatCurrency(avg);
+        }
+
+        function displayInvoices(invoices) {
+            const tbody = document.getElementById('invoicesTable');
+            
+            if (invoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center" style="padding: 60px;">📭<br><br>No invoices found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = invoices.map((inv, index) => {
+                const itemCount = inv.items?.length || inv.InvoiceItems?.length || 0;
+                const paymentIcon = inv.paymentMethod === 'cash' ? '💵' : inv.paymentMethod === 'card' ? '💳' : '🌐';
+                const statusIcon = inv.status === 'paid' ? '✅' : inv.status === 'pending' ? '⏳' : '❌';
+                
+                const invoiceItems = inv.items || inv.InvoiceItems || [];
+                const itemsHtml = invoiceItems.map(item => {
+                    const productName = item.product?.name || item.Product?.name || 'Unknown Product';
+                    const unitPrice = parseFloat(item.price || item.product?.price || item.Product?.price || 0);
+                    const quantity = item.quantity;
+                    const itemTotal = unitPrice * quantity;
+                    
+                    return `
+                        <div class="item-card">
+                            <div class="item-info">
+                                <div class="item-name">📦 ${utils.sanitize(productName)}</div>
+                                <div class="item-meta">Quantity: ${quantity} × ${utils.formatCurrency(unitPrice)}</div>
+                            </div>
+                            <div class="item-price">
+                                <div class="item-total">${utils.formatCurrency(itemTotal)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('') || '<p style="text-align:center;color:#9ca3af;">No items found</p>';
+                
+                return `
+                    <tr class="invoice-row" onclick="toggleDetails(${index})">
+                        <td>
+                            <button class="expand-btn" id="expandBtn${index}">▶</button>
+                        </td>
+                        <td><span class="invoice-number">${utils.sanitize(inv.invoiceNumber)}</span></td>
+                        <td>${new Date(inv.createdAt).toLocaleString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</td>
+                        <td>${inv.customer?.name ? utils.sanitize(inv.customer.name) : inv.Customer?.name ? utils.sanitize(inv.Customer.name) : '👤 Walk-in'}</td>
+                        <td><span class="items-count">${itemCount} items</span></td>
+                        <td>${utils.formatCurrency(inv.subtotal)}</td>
+                        <td>${inv.discount > 0 ? '-' + utils.formatCurrency(inv.discount) : '$0.00'}</td>
+                        <td>${utils.formatCurrency(inv.tax)}</td>
+                        <td><strong style="color: #10b981; font-size: 15px;">${utils.formatCurrency(inv.total)}</strong></td>
+                        <td><span class="payment-badge payment-${inv.paymentMethod}">${paymentIcon} ${utils.sanitize(inv.paymentMethod)}</span></td>
+                        <td><span class="status-badge status-${inv.status}">${statusIcon} ${utils.sanitize(inv.status)}</span></td>
+                        <td><button class="btn btn-primary btn-sm" onclick="reprintReceipt(${index}); event.stopPropagation();" title="Print Receipt">🖨️ Print</button></td>
+                    </tr>
+                    <tr class="details-row" id="details${index}">
+                        <td colspan="12">
+                            <div class="details-content">
+                                <div class="items-header">🛒 Invoice Items</div>
+                                <div class="items-grid">
+                                    ${itemsHtml}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function toggleDetails(index) {
+            const detailsRow = document.getElementById(`details${index}`);
+            const expandBtn = document.getElementById(`expandBtn${index}`);
+            
+            if (detailsRow.classList.contains('show')) {
+                detailsRow.classList.remove('show');
+                expandBtn.classList.remove('expanded');
+                expandBtn.textContent = '▶';
+            } else {
+                // Close all other details
+                document.querySelectorAll('.details-row').forEach(row => row.classList.remove('show'));
+                document.querySelectorAll('.expand-btn').forEach(btn => {
+                    btn.classList.remove('expanded');
+                    btn.textContent = '▶';
+                });
+                
+                detailsRow.classList.add('show');
+                expandBtn.classList.add('expanded');
+                expandBtn.textContent = '▼';
+            }
+        }
+
+        function filterInvoices() {
+            const search = document.getElementById('searchInvoice').value.toLowerCase();
+            const payment = document.getElementById('filterPayment').value;
+            const status = document.getElementById('filterStatus').value;
+            const dateFilter = document.getElementById('filterDate').value;
+
+            let filtered = allInvoices.filter(inv => {
+                const matchSearch = inv.invoiceNumber.toLowerCase().includes(search);
+                const matchPayment = payment === 'all' || inv.paymentMethod === payment;
+                const matchStatus = status === 'all' || inv.status === status;
+                
+                let matchDate = true;
+                const invDate = new Date(inv.createdAt);
+                const today = new Date();
+                
+                if (dateFilter === 'today') {
+                    matchDate = invDate.toDateString() === today.toDateString();
+                } else if (dateFilter === 'week') {
+                    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    matchDate = invDate >= weekAgo;
+                } else if (dateFilter === 'month') {
+                    matchDate = invDate.getMonth() === today.getMonth() && invDate.getFullYear() === today.getFullYear();
+                }
+                
+                return matchSearch && matchPayment && matchStatus && matchDate;
+            });
+
+            displayInvoices(filtered);
+        }
+
+        document.getElementById('searchInvoice').addEventListener('input', filterInvoices);
+        document.getElementById('filterPayment').addEventListener('change', filterInvoices);
+        document.getElementById('filterStatus').addEventListener('change', filterInvoices);
+        document.getElementById('filterDate').addEventListener('change', filterInvoices);
+
+        loadInvoices();
+        
+        async function reprintReceipt(index) {
+            const invoice = allInvoices[index];
+            const items = invoice.items || invoice.InvoiceItems || [];
+            
+            const cartItems = items.map(item => ({
+                productId: item.productId,
+                name: item.product?.name || item.Product?.name || 'Unknown Product',
+                price: parseFloat(item.price || item.product?.price || item.Product?.price || 0),
+                quantity: item.quantity,
+                stock: 999
+            }));
+            
+            const subtotal = parseFloat(invoice.subtotal || 0);
+            const discount = parseFloat(invoice.discount || 0);
+            const tax = parseFloat(invoice.tax || 0);
+            const total = parseFloat(invoice.total || 0);
+            
+            await printReceipt(invoice, cartItems, subtotal, discount, tax, total, user);
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+    </script>
+    <script src="js/receipt.js"></script>
+</body>
+</html>

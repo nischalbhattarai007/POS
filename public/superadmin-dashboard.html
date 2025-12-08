@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard - POS System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-weight: 600; color: var(--primary);">Menu</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#dashboard" onclick="showSection('dashboard'); return false;" id="navDashboard" class="active">🏠 Dashboard</a></li>
+            <li><a href="#invoices" onclick="showSection('invoices'); return false;" id="navInvoices">🧾 Invoices</a></li>
+            <li><a href="company-settings.html">⚙️ Company Settings</a></li>
+            <li><a href="user-management.html">👥 User Management</a></li>
+            <li><a href="reports.html">📊 Reports</a></li>
+        </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+            <span style="font-weight: 600; color: var(--dark);">Super Admin</span>
+        </div>
+        
+        <div class="company-header">
+            <div class="company-brand">
+                <div class="company-logo" id="companyLogo">
+                    <div class="company-logo-placeholder">🏪</div>
+                </div>
+                <div class="company-details">
+                    <div class="company-name" id="companyName">POS System</div>
+                    <div class="company-info">
+                        <span class="company-info-item" id="companyAddress"></span>
+                        <span class="company-info-item" id="companyContact"></span>
+                        <span class="company-info-item" id="companyEmail"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="user-info">
+                <span class="user-badge" id="userName"></span>
+                <span class="role-badge">SUPERADMIN</span>
+                <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="container">
+        
+        <!-- Dashboard Section -->
+        <div id="dashboardSection">
+        <div class="grid grid-4">
+            <div class="stat-card">
+                <div class="icon">👥</div>
+                <h3>Total Users</h3>
+                <div class="value" id="totalUsers">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📦</div>
+                <h3>Total Products</h3>
+                <div class="value" id="totalProducts">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📄</div>
+                <h3>Total Invoices</h3>
+                <div class="value" id="totalInvoices">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">💰</div>
+                <h3>Total Revenue</h3>
+                <div class="value" id="totalRevenue">$0</div>
+            </div>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="card">
+                <div class="card-header">Recent Users</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">System Overview</div>
+                <div style="padding: 16px;">
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Categories</h4>
+                        <div style="font-size: 24px; font-weight: 600;" id="totalCategories">0</div>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Low Stock Items</h4>
+                        <div style="font-size: 24px; font-weight: 600; color: #ef4444;" id="lowStock">0</div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Today's Sales</h4>
+                        <div style="font-size: 24px; font-weight: 600; color: #10b981;" id="todaySales">$0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Invoices Section -->
+        <div id="invoicesSection" style="display: none;">
+            <div class="page-header">
+                <div>
+                    <h2 style="font-size: 28px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">🧾 Invoice Management</h2>
+                    <p style="color: #6b7280; font-size: 14px;">View and edit all invoices with full control</p>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-4" style="margin-bottom: 32px;">
+                <div class="stat-card stat-card-blue">
+                    <div class="stat-icon">📄</div>
+                    <div class="stat-content">
+                        <h3>Total Invoices</h3>
+                        <div class="value" id="invTotalInvoices">0</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-card-green">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-content">
+                        <h3>Total Revenue</h3>
+                        <div class="value" id="invTotalRevenue">$0</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-card-purple">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <h3>Today's Sales</h3>
+                        <div class="value" id="invTodaySales">$0</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-card-yellow">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-content">
+                        <h3>Avg Invoice</h3>
+                        <div class="value" id="invAvgInvoice">$0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+                    <input type="text" id="invSearchInvoice" class="form-control" placeholder="🔍 Search by invoice number..." style="flex: 1; min-width: 250px;">
+                    <select id="invFilterPayment" class="form-control" style="width: 180px;">
+                        <option value="all">All Payments</option>
+                        <option value="cash">💵 Cash</option>
+                        <option value="card">💳 Card</option>
+                        <option value="online">🌐 Online</option>
+                    </select>
+                    <select id="invFilterDate" class="form-control" style="width: 150px;">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Invoices Table -->
+            <div class="card">
+                <div class="card-header">📋 Invoice Management</div>
+                <div class="table-container">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"></th>
+                                <th>Invoice #</th>
+                                <th>Date & Time</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invInvoicesTable">
+                            <tr><td colspan="9" class="text-center">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Invoice Modal -->
+    <div id="editInvoiceModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">Edit Invoice Items</div>
+            <div id="editInvoiceContent"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveInvoiceChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .stat-card-green::before { background: #10b981; }
+        .stat-card-green:hover { border-color: #10b981; }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .modern-table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 12px;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+        }
+
+        .modern-table thead th:first-child {
+            border-radius: 12px 0 0 0;
+        }
+
+        .modern-table thead th:last-child {
+            border-radius: 0 12px 0 0;
+        }
+
+        .modern-table tbody tr {
+            transition: background 0.2s;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .modern-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .modern-table tbody td {
+            padding: 16px 12px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .invoice-number {
+            font-weight: 700;
+            color: #4f46e5;
+            font-family: 'Courier New', monospace;
+        }
+
+        .payment-badge, .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .payment-cash { background: #d1fae5; color: #065f46; }
+        .payment-card { background: #dbeafe; color: #1e40af; }
+        .payment-online { background: #e0e7ff; color: #4338ca; }
+        .status-paid { background: #d1fae5; color: #065f46; }
+
+        .expand-btn {
+            background: #f3f4f6;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .expand-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .expand-btn.expanded {
+            background: #667eea;
+            color: white;
+        }
+
+        .details-row {
+            display: none;
+            background: #f9fafb;
+        }
+
+        .details-row.show {
+            display: table-row;
+        }
+
+        .details-content {
+            padding: 24px;
+            background: white;
+            border-radius: 12px;
+            margin: 12px;
+        }
+
+        .edit-item-row {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .edit-item-row input {
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .edit-item-name {
+            flex: 1;
+            font-weight: 600;
+        }
+    </style>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        checkAuth(CONFIG.ROLES.SUPERADMIN);
+        
+        const user = getUser();
+        document.getElementById('userName').textContent = user?.username || 'Super Admin';
+        
+        async function loadCompanyInfo() {
+            try {
+                const response = await api.getCompanySettings();
+                const company = response.data;
+                
+                document.getElementById('companyName').textContent = company.companyName || 'POS System';
+                
+                if (company.logo) {
+                    document.getElementById('companyLogo').innerHTML = `<img src="http://localhost:5000/${company.logo}" alt="Logo">`;
+                }
+                
+                if (company.address) {
+                    document.getElementById('companyAddress').innerHTML = `📍 ${utils.sanitize(company.address)}`;
+                }
+                
+                if (company.contact) {
+                    document.getElementById('companyContact').innerHTML = `📞 ${utils.sanitize(company.contact)}`;
+                }
+                
+                if (company.email) {
+                    document.getElementById('companyEmail').innerHTML = `✉️ ${utils.sanitize(company.email)}`;
+                }
+            } catch (error) {
+                console.log('Using default company info');
+            }
+        }
+        
+        loadCompanyInfo();
+
+        async function loadDashboard() {
+            try {
+                const [users, products, categories, invoices] = await Promise.all([
+                    api.getUsers().catch(() => ({ data: [] })),
+                    api.getProducts(),
+                    api.getCategories(),
+                    api.getInvoices()
+                ]);
+
+                document.getElementById('totalUsers').textContent = users.data?.length || 0;
+                document.getElementById('totalProducts').textContent = products.data.length;
+                document.getElementById('totalCategories').textContent = categories.data.length;
+                document.getElementById('totalInvoices').textContent = invoices.data.length;
+
+                const totalRevenue = invoices.data.reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0);
+                document.getElementById('totalRevenue').textContent = utils.formatCurrency(totalRevenue);
+
+                const lowStock = products.data.filter(p => p.stock < 20).length;
+                document.getElementById('lowStock').textContent = lowStock;
+
+                const today = new Date().toDateString();
+                const todaySales = invoices.data
+                    .filter(inv => new Date(inv.createdAt).toDateString() === today)
+                    .reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0);
+                document.getElementById('todaySales').textContent = utils.formatCurrency(todaySales);
+
+                const tbody = document.getElementById('usersTable');
+                if (users.data && users.data.length > 0) {
+                    tbody.innerHTML = users.data.slice(0, 5).map(u => `
+                        <tr>
+                            <td>${utils.sanitize(u.username || 'N/A')}</td>
+                            <td>${utils.sanitize(u.email)}</td>
+                            <td><span class="role-badge">${utils.sanitize(u.role)}</span></td>
+                            <td><span style="color: #10b981;">Active</span></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center">No users found</td></tr>';
+                }
+            } catch (error) {
+                utils.showAlert('Error loading dashboard: ' + error.message, 'error');
+            }
+        }
+
+        loadDashboard();
+
+        let allInvoicesData = [];
+        let editingInvoiceId = null;
+        let editingInvoiceItems = [];
+
+        function showSection(section) {
+            document.getElementById('dashboardSection').style.display = section === 'dashboard' ? 'block' : 'none';
+            document.getElementById('invoicesSection').style.display = section === 'invoices' ? 'block' : 'none';
+            
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+            if (section === 'invoices') {
+                document.getElementById('navInvoices').classList.add('active');
+                loadInvoicesSection();
+            } else {
+                document.getElementById('navDashboard').classList.add('active');
+            }
+        }
+
+        async function loadInvoicesSection() {
+            try {
+                const response = await api.getInvoices();
+                allInvoicesData = response.data;
+                
+                updateInvoiceStats(allInvoicesData);
+                displayInvoicesTable(allInvoicesData);
+            } catch (error) {
+                utils.showAlert('Error loading invoices: ' + error.message, 'error');
+            }
+        }
+
+        function updateInvoiceStats(invoices) {
+            const total = invoices.reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0);
+            const today = new Date().toDateString();
+            const todayInvoices = invoices.filter(inv => new Date(inv.createdAt).toDateString() === today);
+            const todayTotal = todayInvoices.reduce((sum, inv) => sum + parseFloat(inv.total || 0), 0);
+            const avg = invoices.length > 0 ? total / invoices.length : 0;
+
+            document.getElementById('invTotalInvoices').textContent = invoices.length;
+            document.getElementById('invTotalRevenue').textContent = utils.formatCurrency(total);
+            document.getElementById('invTodaySales').textContent = utils.formatCurrency(todayTotal);
+            document.getElementById('invAvgInvoice').textContent = utils.formatCurrency(avg);
+        }
+
+        function displayInvoicesTable(invoices) {
+            const tbody = document.getElementById('invInvoicesTable');
+            
+            if (invoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding: 60px;">📭<br><br>No invoices found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = invoices.map((inv, index) => {
+                const itemCount = inv.items?.length || 0;
+                const paymentIcon = inv.paymentMethod === 'cash' ? '💵' : inv.paymentMethod === 'card' ? '💳' : '🌐';
+                const statusIcon = '✅';
+                
+                const itemsHtml = (inv.items || []).map(item => {
+                    const productName = item.product?.name || 'Unknown Product';
+                    const unitPrice = parseFloat(item.price || item.product?.price || 0);
+                    const quantity = item.quantity;
+                    const itemTotal = unitPrice * quantity;
+                    
+                    return `
+                        <div style="padding: 12px; background: #f9fafb; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between;">
+                            <div>
+                                <div style="font-weight: 600;">📦 ${utils.sanitize(productName)}</div>
+                                <div style="font-size: 13px; color: #6b7280;">Qty: ${quantity} × ${utils.formatCurrency(unitPrice)}</div>
+                            </div>
+                            <div style="font-weight: 700; color: #10b981;">${utils.formatCurrency(itemTotal)}</div>
+                        </div>
+                    `;
+                }).join('') || '<p style="text-align:center;color:#9ca3af;">No items found</p>';
+                
+                return `
+                    <tr onclick="toggleInvoiceDetails(${index})" style="cursor: pointer;">
+                        <td>
+                            <button class="expand-btn" id="invExpandBtn${index}">▶</button>
+                        </td>
+                        <td><span class="invoice-number">${utils.sanitize(inv.invoiceNumber)}</span></td>
+                        <td>${new Date(inv.createdAt).toLocaleString('en-US', { 
+                            month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                        })}</td>
+                        <td>${inv.customer?.name || inv.Customer?.name || '👤 Walk-in'}</td>
+                        <td><span style="background: #f3f4f6; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">${itemCount} items</span></td>
+                        <td><strong style="color: #10b981; font-size: 15px;">${utils.formatCurrency(inv.total)}</strong></td>
+                        <td><span class="payment-badge payment-${inv.paymentMethod}">${paymentIcon} ${utils.sanitize(inv.paymentMethod)}</span></td>
+                        <td><span class="status-badge status-paid">${statusIcon} ${utils.sanitize(inv.status)}</span></td>
+                        <td><button class="btn btn-primary btn-sm" onclick="openEditModal(${inv.id}); event.stopPropagation();">✏️ Edit</button></td>
+                    </tr>
+                    <tr class="details-row" id="invDetails${index}">
+                        <td colspan="9">
+                            <div class="details-content">
+                                <div style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">🛒 Invoice Items</div>
+                                ${itemsHtml}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function toggleInvoiceDetails(index) {
+            const detailsRow = document.getElementById(`invDetails${index}`);
+            const expandBtn = document.getElementById(`invExpandBtn${index}`);
+            
+            if (detailsRow.classList.contains('show')) {
+                detailsRow.classList.remove('show');
+                expandBtn.classList.remove('expanded');
+                expandBtn.textContent = '▶';
+            } else {
+                document.querySelectorAll('.details-row').forEach(row => row.classList.remove('show'));
+                document.querySelectorAll('.expand-btn').forEach(btn => {
+                    btn.classList.remove('expanded');
+                    btn.textContent = '▶';
+                });
+                
+                detailsRow.classList.add('show');
+                expandBtn.classList.add('expanded');
+                expandBtn.textContent = '▼';
+            }
+        }
+
+        async function openEditModal(invoiceId) {
+            try {
+                const invoice = allInvoicesData.find(inv => inv.id === invoiceId);
+                if (!invoice) {
+                    utils.showAlert('Invoice not found', 'error');
+                    return;
+                }
+                
+                editingInvoiceId = invoiceId;
+                editingInvoiceItems = JSON.parse(JSON.stringify(invoice.items || []));
+                
+                const content = document.getElementById('editInvoiceContent');
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <strong>Invoice: ${invoice.invoiceNumber}</strong>
+                    </div>
+                    ${editingInvoiceItems.map((item, idx) => `
+                        <div class="edit-item-row">
+                            <div class="edit-item-name">📦 ${utils.sanitize(item.product?.name || 'Unknown')}</div>
+                            <div>
+                                <label style="font-size: 12px; color: #6b7280;">Quantity</label>
+                                <input type="number" value="${item.quantity}" min="1" style="width: 80px;" 
+                                    onchange="updateEditItem(${idx}, 'quantity', this.value)">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #6b7280;">Price</label>
+                                <input type="number" value="${item.price || item.product?.price || 0}" min="0" step="0.01" style="width: 100px;" 
+                                    onchange="updateEditItem(${idx}, 'price', this.value)">
+                            </div>
+                            <div style="font-weight: 700; color: #10b981; min-width: 80px; text-align: right;" id="itemTotal${idx}">
+                                ${utils.formatCurrency((item.quantity) * (item.price || item.product?.price || 0))}
+                            </div>
+                        </div>
+                    `).join('')}
+                    <div style="margin-top: 20px; padding: 16px; background: #f3f4f6; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 700;">
+                            <span>New Total:</span>
+                            <span id="editNewTotal" style="color: #10b981;">${utils.formatCurrency(invoice.total)}</span>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('editInvoiceModal').classList.add('active');
+            } catch (error) {
+                utils.showAlert('Error loading invoice: ' + error.message, 'error');
+            }
+        }
+
+        function updateEditItem(index, field, value) {
+            editingInvoiceItems[index][field] = parseFloat(value);
+            
+            const quantity = editingInvoiceItems[index].quantity;
+            const price = editingInvoiceItems[index].price || editingInvoiceItems[index].product?.price || 0;
+            const itemTotal = quantity * price;
+            
+            document.getElementById(`itemTotal${index}`).textContent = utils.formatCurrency(itemTotal);
+            
+            const newTotal = editingInvoiceItems.reduce((sum, item) => {
+                const qty = item.quantity;
+                const prc = item.price || item.product?.price || 0;
+                return sum + (qty * prc);
+            }, 0);
+            
+            document.getElementById('editNewTotal').textContent = utils.formatCurrency(newTotal);
+        }
+
+        async function saveInvoiceChanges() {
+            try {
+                const updates = editingInvoiceItems.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity,
+                    price: item.price || item.product?.price || 0
+                }));
+                
+                await api.request(`/invoices/${editingInvoiceId}/items`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ items: updates })
+                });
+                
+                utils.showAlert('Invoice updated successfully!', 'success');
+                closeEditModal();
+                loadInvoicesSection();
+            } catch (error) {
+                utils.showAlert(error.message, 'error');
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editInvoiceModal').classList.remove('active');
+            editingInvoiceId = null;
+            editingInvoiceItems = [];
+        }
+
+        document.getElementById('invSearchInvoice')?.addEventListener('input', filterInvoicesTable);
+        document.getElementById('invFilterPayment')?.addEventListener('change', filterInvoicesTable);
+        document.getElementById('invFilterDate')?.addEventListener('change', filterInvoicesTable);
+
+        function filterInvoicesTable() {
+            const search = document.getElementById('invSearchInvoice').value.toLowerCase();
+            const payment = document.getElementById('invFilterPayment').value;
+            const dateFilter = document.getElementById('invFilterDate').value;
+
+            let filtered = allInvoicesData.filter(inv => {
+                const matchSearch = inv.invoiceNumber.toLowerCase().includes(search);
+                const matchPayment = payment === 'all' || inv.paymentMethod === payment;
+                
+                let matchDate = true;
+                const invDate = new Date(inv.createdAt);
+                const today = new Date();
+                
+                if (dateFilter === 'today') {
+                    matchDate = invDate.toDateString() === today.toDateString();
+                } else if (dateFilter === 'week') {
+                    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    matchDate = invDate >= weekAgo;
+                } else if (dateFilter === 'month') {
+                    matchDate = invDate.getMonth() === today.getMonth() && invDate.getFullYear() === today.getFullYear();
+                }
+                
+                return matchSearch && matchPayment && matchDate;
+            });
+
+            displayInvoicesTable(filtered);
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+    </script>
+</body>
+</html>
